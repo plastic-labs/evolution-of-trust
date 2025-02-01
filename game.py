@@ -7,117 +7,129 @@ from prompts.agent_a import SYSTEM_PROMPT as PROMPT_A
 from prompts.agent_b import SYSTEM_PROMPT as PROMPT_B
 from ollama import Client
 
-class PrisonersDilemmaGame:
-    def __init__(self):
-        self.client = Client(host='http://localhost:11434')
-        self.agent_a_coins = 0  # Start with 0, will earn/lose coins each turn
-        self.agent_b_coins = 0
-        self.num_turns = random.randint(3, 7)
-        self.current_turn = 0
-        self.game_id = str(uuid.uuid4())[:8]  # Generate unique game ID
-        # Add color codes
-        self.RED = '\033[91m'
-        self.BLUE = '\033[94m'
-        self.RESET = '\033[0m'
-        
-        # Ensure the logs directory exists
+class GameLogger:
+    def __init__(self, game_id):
+        self.game_id = game_id
+        self.log_file = 'logs/game_history.csv'
         Path('logs').mkdir(exist_ok=True)
         
-        # Create or check CSV header
-        self.log_file = 'logs/game_history.csv'
         if not Path(self.log_file).exists():
             with open(self.log_file, 'w', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(['timestamp', 'game_id', 'agent', 'full_response', 
                                'choice', 'agent_score', 'opponent_score', 'turn'])
-        self.move_history = []  # Add this to track moves
-
-    def get_agent_choice(self, prompt, state, max_retries=3, is_agent_a=True):
-        color = self.RED if is_agent_a else self.BLUE
-        for attempt in range(max_retries):
-            response = ""
-            print(f"\n{color}(attempt {attempt + 1}/{max_retries})", end="\n", flush=True)
-            for chunk in self.client.chat(
-                model='llama3.1:8b',
-                messages=[
-                    {
-                        'role': 'system',
-                        'content': prompt
-                    },
-                    {
-                        'role': 'user',
-                        'content': state
-                    }
-                ],
-                stream=True
-            ):
-                chunk_text = chunk['message']['content']
-                print(chunk_text, end="", flush=True)
-                response += chunk_text
-            print(self.RESET)  # Reset color after response
-
-            # Extract choice from <choice></choice> tags
-            choice = response.lower()
-            if '<choice>' in choice and '</choice>' in choice:
-                choice = choice.split('<choice>')[1].split('</choice>')[0].strip()
-                # Validate the choice
-                if choice in ['cooperate', 'cheat']:
-                    # Log the response
-                    self.log_response(response, choice, is_agent_a)
-                    return choice
-                else:
-                    print(f"{color}Invalid choice '{choice}'. Must be 'cooperate' or 'cheat'. Retrying...{self.RESET}")
-            else:
-                print(f"{color}No choice found in response. Retrying...{self.RESET}")
-        
-        raise Exception(f"Failed to get valid choice after {max_retries} attempts")
-
-    def log_response(self, full_response, choice, is_agent_a):
-        """Log the agent's response and game state to CSV"""
+    
+    def log_move(self, full_response, choice, is_agent_a, agent_score, opponent_score, turn):
         with open(self.log_file, 'a', newline='', encoding='utf-8') as f:
             writer = csv.writer(f)
             writer.writerow([
                 datetime.now().isoformat(),
                 self.game_id,
                 'A' if is_agent_a else 'B',
-                full_response.replace('\n', ' '),  # Remove newlines for CSV
+                full_response.replace('\n', ' '),
                 choice,
-                self.agent_a_coins if is_agent_a else self.agent_b_coins,
-                self.agent_b_coins if is_agent_a else self.agent_a_coins,
-                self.current_turn
+                agent_score,
+                opponent_score,
+                turn
             ])
 
-    def get_game_state(self, for_agent_a=True):
-        state = "<state>\n"
-        state += f"YOU: {self.agent_a_coins if for_agent_a else self.agent_b_coins}\n"
-        state += f"OPPONENT: {self.agent_b_coins if for_agent_a else self.agent_a_coins}\n"
+class PrisonersDilemmaGame:
+    COLORS = {
+        'red': '\033[91m',
+        'blue': '\033[94m',
+        'reset': '\033[0m'
+    }
+
+    def __init__(self):
+        self.client = Client(host='http://localhost:11434')
+        self.agent_a_coins = 0
+        self.agent_b_coins = 0
+        self.num_turns = random.randint(3, 7)
+        self.current_turn = 0
+        self.game_id = str(uuid.uuid4())[:8]
+        self.logger = GameLogger(self.game_id)
+        self.move_history = []
+        self.agent_a_messages = []
+        self.agent_b_messages = []
+
+    def _colored_text(self, text, color):
+        return f"{self.COLORS[color]}{text}{self.COLORS['reset']}"
+
+    def get_agent_choice(self, prompt, state, max_retries=3, is_agent_a=True):
+        color = 'red' if is_agent_a else 'blue'
+        messages = [{'role': 'system', 'content': prompt}]
         
-        # Add history of moves if any exists
+        # Add message history
+        message_history = self.agent_a_messages if is_agent_a else self.agent_b_messages
+        messages.extend(message_history)
+        
+        # Add current state as new user message
+        messages.append({'role': 'user', 'content': state})
+        
+        for attempt in range(max_retries):
+            print(f"\n{self._colored_text(f'(attempt {attempt + 1}/{max_retries})', color)}")
+            response = ""
+            
+            for chunk in self.client.chat(
+                model='llama3.1:8b',
+                messages=messages,
+                stream=True
+            ):
+                chunk_text = chunk['message']['content']
+                print(self._colored_text(chunk_text, color), end="", flush=True)
+                response += chunk_text
+            print()
+
+            choice = self._extract_choice(response)
+            if choice:
+                # Add the response to message history
+                if is_agent_a:
+                    self.agent_a_messages.append({'role': 'user', 'content': state})
+                    self.agent_a_messages.append({'role': 'assistant', 'content': response})
+                else:
+                    self.agent_b_messages.append({'role': 'user', 'content': state})
+                    self.agent_b_messages.append({'role': 'assistant', 'content': response})
+                
+                self.logger.log_move(
+                    response, choice, is_agent_a,
+                    self.agent_a_coins if is_agent_a else self.agent_b_coins,
+                    self.agent_b_coins if is_agent_a else self.agent_a_coins,
+                    self.current_turn
+                )
+                return choice
+        
+        raise Exception(f"Failed to get valid choice after {max_retries} attempts")
+
+    def _extract_choice(self, response):
+        choice = response.lower()
+        if '<choice>' in choice and '</choice>' in choice:
+            choice = choice.split('<choice>')[1].split('</choice>')[0].strip()
+            return choice if choice in ['cooperate', 'cheat'] else None
+        return None
+
+    def get_game_state(self, for_agent_a=True):
+        my_coins = self.agent_a_coins if for_agent_a else self.agent_b_coins
+        opp_coins = self.agent_b_coins if for_agent_a else self.agent_a_coins
+        
+        state = f"<state>\nYOU: {my_coins}\nOPPONENT: {opp_coins}\n"
+        
         if self.move_history:
             state += "\nPrevious moves:\n"
             for turn, (move_a, move_b) in enumerate(self.move_history, 1):
-                if for_agent_a:
-                    state += f"Turn {turn}: YOU {move_a}, OPPONENT {move_b}\n"
-                else:
-                    state += f"Turn {turn}: YOU {move_b}, OPPONENT {move_a}\n"
+                my_move = move_a if for_agent_a else move_b
+                opp_move = move_b if for_agent_a else move_a
+                state += f"Turn {turn}: YOU {my_move}, OPPONENT {opp_move}\n"
         
-        state += "</state>"
-        return state
+        return state + "</state>"
 
     def process_choices(self, choice_a, choice_b):
-        # Each agent gets one coin to use this turn
         if choice_a == 'cooperate' and choice_b == 'cooperate':
-            # Both cooperate: each gets 2 coins
             self.agent_a_coins += 2
             self.agent_b_coins += 2
         elif choice_a == 'cheat' and choice_b == 'cooperate':
-            # A cheats, B cooperates: A gets 3 coins, B gets 0
             self.agent_a_coins += 3
         elif choice_a == 'cooperate' and choice_b == 'cheat':
-            # A cooperates, B cheats: A gets 0, B gets 3 coins
             self.agent_b_coins += 3
-        # If both cheat, neither gets any coins
-        # Add the moves to history after processing
         self.move_history.append((choice_a, choice_b))
 
     def play_game(self):
@@ -127,23 +139,20 @@ class PrisonersDilemmaGame:
             self.current_turn += 1
             print(f"\nTurn {self.current_turn}")
             
-            # Get choices from both agents
-            state_a = self.get_game_state(for_agent_a=True)
-            state_b = self.get_game_state(for_agent_a=False)
+            choice_a = self.get_agent_choice(PROMPT_A, self.get_game_state(True), is_agent_a=True)
+            choice_b = self.get_agent_choice(PROMPT_B, self.get_game_state(False), is_agent_a=False)
             
-            choice_a = self.get_agent_choice(PROMPT_A, state_a, is_agent_a=True)
-            choice_b = self.get_agent_choice(PROMPT_B, state_b, is_agent_a=False)
-            
-            print(f"{self.RED}Agent A chose: {choice_a}{self.RESET}")
-            print(f"{self.BLUE}Agent B chose: {choice_b}{self.RESET}")
+            print(f"{self._colored_text(f'Agent A chose: {choice_a}', 'red')}")
+            print(f"{self._colored_text(f'Agent B chose: {choice_b}', 'blue')}")
             
             self.process_choices(choice_a, choice_b)
-            print(f"Current scores - {self.RED}A: {self.agent_a_coins}{self.RESET}, {self.BLUE}B: {self.agent_b_coins}{self.RESET}")
+            print(f"Current scores - {self._colored_text(f'A: {self.agent_a_coins}', 'red')}, "
+                  f"{self._colored_text(f'B: {self.agent_b_coins}', 'blue')}")
 
         print("\nGame Over!")
-        print(f"Final scores:")
-        print(f"{self.RED}Agent A: {self.agent_a_coins}{self.RESET}")
-        print(f"{self.BLUE}Agent B: {self.agent_b_coins}{self.RESET}")
+        print("Final scores:")
+        print(self._colored_text(f"Agent A: {self.agent_a_coins}", 'red'))
+        print(self._colored_text(f"Agent B: {self.agent_b_coins}", 'blue'))
 
 if __name__ == "__main__":
     game = PrisonersDilemmaGame()
