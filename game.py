@@ -3,8 +3,10 @@ import csv
 import uuid
 from datetime import datetime
 from pathlib import Path
-from prompts.agent_a import MESSAGES as MESSAGES_A
-from prompts.detective import MESSAGES as MESSAGES_B
+from prompts.chat.agent_a import MESSAGES as CHAT_MESSAGES_A
+from prompts.chat.agent_c import MESSAGES as CHAT_MESSAGES_B
+from prompts.choice.agent_a import MESSAGES as CHOICE_MESSAGES_A
+from prompts.choice.agent_c import MESSAGES as CHOICE_MESSAGES_B
 from ollama import Client
 
 MODEL = "llama3.1:8b"
@@ -53,6 +55,7 @@ class PrisonersDilemmaGame:
         self.move_history = []
         self.agent_a_messages = []
         self.agent_b_messages = []
+        self.chat_history = []  # Store the pre-turn chat messages
 
     def _colored_text(self, text, color):
         return f"{self.COLORS[color]}{text}{self.COLORS['reset']}"
@@ -109,6 +112,43 @@ class PrisonersDilemmaGame:
             return choice if choice in ['cooperate', 'cheat'] else None
         return None
 
+    def get_chat_message(self, prompt_messages, state, is_agent_a=True, max_retries=3):
+        color = 'red' if is_agent_a else 'blue'
+        messages = prompt_messages.copy()
+        
+        # Add chat history to context
+        for msg in self.chat_history:
+            messages.append({
+                'role': 'user' if msg['is_agent_a'] != is_agent_a else 'assistant',
+                'content': f"{'Opponent' if msg['is_agent_a'] != is_agent_a else 'You'}: {msg['message']}"
+            })
+        
+        # Add current state
+        messages.append({'role': 'user', 'content': state})
+        
+        for attempt in range(max_retries):
+            print(f"\n{self._colored_text(f'Chat attempt {attempt + 1}/{max_retries}', color)}")
+            response = ""
+            
+            for chunk in self.client.chat(
+                model=MODEL,
+                messages=messages,
+                stream=True
+            ):
+                chunk_text = chunk['message']['content']
+                print(self._colored_text(chunk_text, color), end="", flush=True)
+                response += chunk_text
+            print()
+
+            if response.strip():  # As long as we get a non-empty response
+                self.chat_history.append({
+                    'is_agent_a': is_agent_a,
+                    'message': response.strip()
+                })
+                return response.strip()
+        
+        raise Exception(f"Failed to get chat message after {max_retries} attempts")
+
     def get_game_state(self, for_agent_a=True):
         my_coins = self.agent_a_coins if for_agent_a else self.agent_b_coins
         opp_coins = self.agent_b_coins if for_agent_a else self.agent_a_coins
@@ -121,6 +161,14 @@ class PrisonersDilemmaGame:
                 my_move = move_a if for_agent_a else move_b
                 opp_move = move_b if for_agent_a else move_a
                 state += f"Turn {turn}: YOU {my_move}, OPPONENT {opp_move}\n"
+        
+        if self.chat_history:
+            state += "\nChat history:\n"
+            for msg in self.chat_history:
+                if msg['is_agent_a'] == for_agent_a:
+                    state += f"YOU: {msg['message']}\n"
+                else:
+                    state += f"OPPONENT: {msg['message']}\n"
         
         return state + "</state>"
 
@@ -141,8 +189,17 @@ class PrisonersDilemmaGame:
             self.current_turn += 1
             print(f"\nTurn {self.current_turn}")
             
-            choice_a = self.get_agent_choice(MESSAGES_A, self.get_game_state(True), is_agent_a=True)
-            choice_b = self.get_agent_choice(MESSAGES_B, self.get_game_state(False), is_agent_a=False)
+            # Pre-turn chat (2 rounds)
+            print("\nStarting pre-turn chat...")
+            for chat_round in range(2):
+                print(f"\nChat Round {chat_round + 1}")
+                # Agent A chats first, then B
+                self.get_chat_message(CHAT_MESSAGES_A, self.get_game_state(True), is_agent_a=True)
+                self.get_chat_message(CHAT_MESSAGES_B, self.get_game_state(False), is_agent_a=False)
+            
+            # Get choices after chat
+            choice_a = self.get_agent_choice(CHOICE_MESSAGES_A, self.get_game_state(True), is_agent_a=True)
+            choice_b = self.get_agent_choice(CHOICE_MESSAGES_B, self.get_game_state(False), is_agent_a=False)
             
             print(f"{self._colored_text(f'Agent A chose: {choice_a}', 'red')}")
             print(f"{self._colored_text(f'Agent B chose: {choice_b}', 'blue')}")

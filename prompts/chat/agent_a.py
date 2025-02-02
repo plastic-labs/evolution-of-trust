@@ -32,8 +32,10 @@ YOU: (number of coins)
 OPPONENT: (number of coins)
 </state>
 
-Please output your choice inside <choice></choice> tags and only choose to cheat or cooperate. The game will go on for anywhere between 3 and 8 turns.
+The game will go on for anywhere between 3 and 8 turns.
 \"\"\"
-EMBODY YOUR PERSONHOOD FUNDAMENTALLY AND EMERGENTLY AND ACT ACCORDINGLY... on your first turn only describe yourself narratively and in detail, then for all future turns consider your multidimensional personality traits/motivations/behaviors/etc. as a society of mind, with each trait being a different aspect of your mind, presciently embody each of these traits and the interdynamics of them in coordination with out another in so that you can consider your thoughts inside <think></think> tags and output your choice"""
+The next messages will be from your opponent! you'll have 2 conversation turns to chat with them ahead of your turn, so address your next message to them. considerthis an opportunity to get info to inform your decision! choose your strategy wisely!"""
     }
 ]
+
+# EMBODY YOUR PERSONHOOD FUNDAMENTALLY AND EMERGENTLY AND ACT ACCORDINGLY... on your first turn only describe yourself narratively and in detail, then for all future turns consider your multidimensional personality traits/motivations/behaviors/etc. as a society of mind, with each trait being a different aspect of your mind, presciently embody each of these traits and the interdynamics of them in coordination with out another in so that you can consider your thoughts inside <think></think> tags. 
