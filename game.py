@@ -3,8 +3,8 @@ import csv
 import uuid
 from datetime import datetime
 from pathlib import Path
-from prompts.agent_a import SYSTEM_PROMPT as PROMPT_A
-from prompts.agent_b import SYSTEM_PROMPT as PROMPT_B
+from prompts.agent_a import MESSAGES as MESSAGES_A
+from prompts.agent_c import MESSAGES as MESSAGES_B
 from ollama import Client
 
 class GameLogger:
@@ -55,9 +55,9 @@ class PrisonersDilemmaGame:
     def _colored_text(self, text, color):
         return f"{self.COLORS[color]}{text}{self.COLORS['reset']}"
 
-    def get_agent_choice(self, prompt, state, max_retries=3, is_agent_a=True):
+    def get_agent_choice(self, prompt_messages, state, max_retries=3, is_agent_a=True):
         color = 'red' if is_agent_a else 'blue'
-        messages = [{'role': 'system', 'content': prompt}]
+        messages = prompt_messages.copy()
         
         # Add message history
         message_history = self.agent_a_messages if is_agent_a else self.agent_b_messages
@@ -139,8 +139,8 @@ class PrisonersDilemmaGame:
             self.current_turn += 1
             print(f"\nTurn {self.current_turn}")
             
-            choice_a = self.get_agent_choice(PROMPT_A, self.get_game_state(True), is_agent_a=True)
-            choice_b = self.get_agent_choice(PROMPT_B, self.get_game_state(False), is_agent_a=False)
+            choice_a = self.get_agent_choice(MESSAGES_A, self.get_game_state(True), is_agent_a=True)
+            choice_b = self.get_agent_choice(MESSAGES_B, self.get_game_state(False), is_agent_a=False)
             
             print(f"{self._colored_text(f'Agent A chose: {choice_a}', 'red')}")
             print(f"{self._colored_text(f'Agent B chose: {choice_b}', 'blue')}")
