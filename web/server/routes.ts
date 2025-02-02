@@ -30,6 +30,7 @@ async function playGameRound(gameId: number) {
               player1Move: m.player1Move,
               player2Move: m.player2Move
             })),
+            { player1Score: game.player1Score, player2Score: game.player2Score },
             messages.map(m => ({
               sender: m.sender,
               content: m.content,
@@ -47,6 +48,7 @@ async function playGameRound(gameId: number) {
               player1Move: m.player1Move,
               player2Move: m.player2Move
             })),
+            { player1Score: game.player1Score, player2Score: game.player2Score },
             messages.map(m => ({
               sender: m.sender,
               content: m.content,
@@ -92,6 +94,7 @@ async function playGameRound(gameId: number) {
           player1Move: m.player1Move,
           player2Move: m.player2Move
         })),
+        { player1Score: game.player1Score, player2Score: game.player2Score },
         messages.map(m => ({
           sender: m.sender,
           content: m.content,
@@ -108,6 +111,7 @@ async function playGameRound(gameId: number) {
           player1Move: m.player1Move,
           player2Move: m.player2Move
         })),
+        { player1Score: game.player1Score, player2Score: game.player2Score },
         messages.map(m => ({
           sender: m.sender,
           content: m.content,
@@ -139,7 +143,7 @@ async function playGameRound(gameId: number) {
       })
     ]);
 
-        // Add delay to allow thoughts to be read
+    // Add delay to allow thoughts to be read
     await new Promise(resolve => setTimeout(resolve, 1000));
 
 
@@ -147,7 +151,7 @@ async function playGameRound(gameId: number) {
     const player1Move = agent1Decision.move || "cooperate";
     const player2Move = agent2Decision.move || "cooperate";
 
-     const move = await storage.addMove({
+    const move = await storage.addMove({
       gameId,
       round: game.currentRound,
       player1Move,
@@ -211,11 +215,11 @@ async function playGameRound(gameId: number) {
     });
 
     // Only mark game as completed after the last round is fully processed
-     if (game.currentRound > game.totalRounds) {
+    if (game.currentRound > game.totalRounds) {
       // Add a small delay before marking as completed to ensure all messages are delivered
-        await new Promise(resolve => setTimeout(resolve, 2000));
-       game.status = "completed";
-     }
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      game.status = "completed";
+    }
 
     await storage.updateGame(game);
 

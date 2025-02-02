@@ -19,12 +19,12 @@ export default function Home() {
   const [gameId, setGameId] = useState<number | null>(null);
   const [gameMode, setGameMode] = useState<"standard" | "interactive">("standard");
   const [agent1Config, setAgent1Config] = useState<AgentConfig>({
-    model: "llama3.2",
-    systemPrompt: "default"
+    model: "llama3.2:3b",
+    systemPrompt: "grudge"
   });
   const [agent2Config, setAgent2Config] = useState<AgentConfig>({
-    model: "llama3.2",
-    systemPrompt: "default"
+    model: "llama3.2:3b",
+    systemPrompt: "trump"
   });
   const [isGameCompleted, setIsGameCompleted] = useState(false);
 
@@ -143,10 +143,8 @@ export default function Home() {
                           <SelectValue placeholder="Select behavior" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="default">Default</SelectItem>
-                          <SelectItem value="competitive">Competitive</SelectItem>
-                          <SelectItem value="cooperative">Cooperative</SelectItem>
-                          <SelectItem value="random">Random</SelectItem>
+                          <SelectItem value="trump">Trump</SelectItem>
+                          <SelectItem value="grudge">Grudge</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -160,7 +158,7 @@ export default function Home() {
                           <SelectValue placeholder="Select model" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="llama3.2:3b">Llama 3.3 8b</SelectItem>
+                          <SelectItem value="llama3.2:3b">Llama 3.2 3b</SelectItem>
                           <SelectItem value="llama3.3:70b">Llama 3.3 70b</SelectItem>
                         </SelectContent>
                       </Select>
@@ -172,10 +170,8 @@ export default function Home() {
                           <SelectValue placeholder="Select behavior" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="default">Default</SelectItem>
-                          <SelectItem value="competitive">Competitive</SelectItem>
-                          <SelectItem value="cooperative">Cooperative</SelectItem>
-                          <SelectItem value="random">Random</SelectItem>
+                          <SelectItem value="trump">Trump</SelectItem>
+                          <SelectItem value="grudge">Grudge</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

@@ -45,7 +45,7 @@ export const insertMessageSchema = createInsertSchema(messages);
 
 export const agentConfigSchema = z.object({
   model: z.enum(["llama3.2:3b", "llama3.3:70b"]),
-  systemPrompt: z.enum(["default", "competitive", "cooperative", "random"])
+  systemPrompt: z.enum(["trump", "grudge"])
 });
 
 export type AgentConfig = z.infer<typeof agentConfigSchema>;
