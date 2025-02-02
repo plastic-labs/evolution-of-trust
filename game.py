@@ -4,8 +4,10 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 from prompts.agent_a import MESSAGES as MESSAGES_A
-from prompts.agent_c import MESSAGES as MESSAGES_B
+from prompts.detective import MESSAGES as MESSAGES_B
 from ollama import Client
+
+MODEL = "llama3.1:8b"
 
 class GameLogger:
     def __init__(self, game_id):
@@ -71,7 +73,7 @@ class PrisonersDilemmaGame:
             response = ""
             
             for chunk in self.client.chat(
-                model='llama3.1:8b',
+                model=MODEL,
                 messages=messages,
                 stream=True
             ):

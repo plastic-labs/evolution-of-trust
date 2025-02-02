@@ -13,6 +13,6 @@ YOU: (number of coins)
 OPPONENT: (number of coins)
 </state>
 
-Please output your choice inside <choice></choice> tags and only choose to cheat or cooperate. The game will go on for anywhere between 3 and 7 turns."""
+Please output your choice inside <choice></choice> tags and only choose to cheat or cooperate. The game will go on for anywhere between 3 and 8 turns."""
     }
 ]
