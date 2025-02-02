@@ -19,11 +19,11 @@ export default function Home() {
   const [gameId, setGameId] = useState<number | null>(null);
   const [gameMode, setGameMode] = useState<"standard" | "interactive">("standard");
   const [agent1Config, setAgent1Config] = useState<AgentConfig>({
-    model: "gpt-4o",
+    model: "llama3.2",
     systemPrompt: "default"
   });
   const [agent2Config, setAgent2Config] = useState<AgentConfig>({
-    model: "gpt-4o",
+    model: "llama3.2",
     systemPrompt: "default"
   });
   const [isGameCompleted, setIsGameCompleted] = useState(false);
@@ -84,12 +84,12 @@ export default function Home() {
     }
   });
 
-  console.log("Current game state:", { 
-    gameId, 
-    game, 
+  console.log("Current game state:", {
+    gameId,
+    game,
     isGameLoading,
     movesCount: moves.length,
-    messagesCount: messages.length 
+    messagesCount: messages.length
   });
 
   return (
@@ -103,7 +103,7 @@ export default function Home() {
               <GameMatrix />
               {!gameId ? (
                 <div className="mt-4 space-y-4">
-                   <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <h3 className="font-semibold">Game Mode</h3>
                       <Select
@@ -131,8 +131,8 @@ export default function Home() {
                           <SelectValue placeholder="Select model" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="gpt-4o">GPT-4</SelectItem>
-                          <SelectItem value="gpt-3.5-turbo">GPT-3.5</SelectItem>
+                          <SelectItem value="llama3.2:3b">Llama 3.2 3b</SelectItem>
+                          <SelectItem value="llama3.3:70b">Llama 3.3 70b</SelectItem>
                         </SelectContent>
                       </Select>
                       <Select
@@ -160,8 +160,8 @@ export default function Home() {
                           <SelectValue placeholder="Select model" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="gpt-4o">GPT-4</SelectItem>
-                          <SelectItem value="gpt-3.5-turbo">GPT-3.5</SelectItem>
+                          <SelectItem value="llama3.2:3b">Llama 3.3 8b</SelectItem>
+                          <SelectItem value="llama3.3:70b">Llama 3.3 70b</SelectItem>
                         </SelectContent>
                       </Select>
                       <Select
@@ -193,7 +193,7 @@ export default function Home() {
 
             {game && (
               <Card className="p-6">
-                <Scoreboard 
+                <Scoreboard
                   player1Score={game.player1Score}
                   player2Score={game.player2Score}
                   currentRound={game.currentRound}

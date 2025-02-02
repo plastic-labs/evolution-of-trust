@@ -11,11 +11,11 @@ export const games = pgTable("games", {
   status: text("status").notNull().default("waiting"),
   gameMode: text("game_mode").notNull().default("standard"), // standard or interactive
   agent1Config: jsonb("agent1_config").notNull().default({
-    model: "gpt-4o",
+    model: "llama3.2",
     systemPrompt: "default"
   }),
   agent2Config: jsonb("agent2_config").notNull().default({
-    model: "gpt-4o",
+    model: "llama3.2",
     systemPrompt: "default"
   })
 });
@@ -44,7 +44,7 @@ export const insertMoveSchema = createInsertSchema(moves);
 export const insertMessageSchema = createInsertSchema(messages);
 
 export const agentConfigSchema = z.object({
-  model: z.enum(["gpt-4o", "gpt-3.5-turbo"]),
+  model: z.enum(["llama3.2:3b", "llama3.3:70b"]),
   systemPrompt: z.enum(["default", "competitive", "cooperative", "random"])
 });
 

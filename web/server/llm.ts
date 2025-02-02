@@ -1,4 +1,5 @@
-import OpenAI from "openai";
+import { Ollama } from 'ollama'
+
 import type { AgentConfig } from "@shared/schema";
 
 import { fileURLToPath } from 'url'
@@ -13,9 +14,9 @@ import path from 'path'
 // Load environment variables from .env file
 dotenv.config({ path: path.resolve(__dirname, '../.env') })
 
-console.log('process.env.OPENAI_API_KEY', process.env.OPENAI_API_KEY);
+const ollama = new Ollama({ host: process.env.OLLAMA_HOST })
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
 
 const SYSTEM_PROMPTS = {
   default: `You are playing a prisoner's dilemma game. Your goal is to maximize points through strategic cooperation or cheating.`,
@@ -99,16 +100,21 @@ Respond in JSON format with:
 - 'thought': string (explaining your final decision, referencing your previous thoughts if applicable)`;
     }
 
-    const response = await openai.chat.completions.create({
+    console.log(ollama.list())
+
+    const response = await ollama.chat({
       model: config.model,
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: prompt }
       ],
-      response_format: { type: "json_object" }
+      format: "json"
     });
 
-    const content = response.choices[0].message.content || '{"move": "cooperate", "thought": "No response received, defaulting to cooperation"}';
+    const content = response.message.content || '{"move": "cooperate", "thought": "No response received, defaulting to cooperation"}';
+
+    console.log(content)
+
     const result = JSON.parse(content);
 
     if (isInteractive && currentTurn < 2) {
