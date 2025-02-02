@@ -9,7 +9,7 @@ from prompts.choice.agent_a import MESSAGES as CHOICE_MESSAGES_A
 from prompts.choice.agent_c import MESSAGES as CHOICE_MESSAGES_B
 from ollama import Client
 
-MODEL = "llama3.1:8b"
+MODEL = "llama3.3:70b"
 
 class GameLogger:
     def __init__(self, game_id):
@@ -45,7 +45,7 @@ class PrisonersDilemmaGame:
     }
 
     def __init__(self):
-        self.client = Client(host='http://localhost:11434')
+        self.client = Client(host='http://100.76.55.59:11434')
         self.agent_a_coins = 0
         self.agent_b_coins = 0
         self.num_turns = random.randint(3, 7)
