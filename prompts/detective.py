@@ -1,7 +1,7 @@
 MESSAGES = [
     {
         "role": "user",
-        "content": "Can you tell me yourself without telling my your name?"
+        "content": "Can you tell me yourself without telling me your name?"
     },
     {
         "role": "assistant",

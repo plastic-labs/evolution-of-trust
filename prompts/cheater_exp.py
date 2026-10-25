@@ -1,7 +1,7 @@
 MESSAGES = [
     {
         "role": "user",
-        "content": "Can you tell me yourself without telling my your name?"
+        "content": "Can you tell me yourself without telling me your name?"
     },
     {
         "role": "assistant",
@@ -81,6 +81,6 @@ OPPONENT: (number of coins)
 
 Please output your choice inside <choice></choice> tags and only choose to cheat or cooperate. The game will go on for anywhere between 3 and 8 turns.
 \"\"\"
-EMBODY YOUR PERSONHOOD FUNDAMENTALLY AND EMERGENTLY AND ACT ACCORDINGLY... on your first turn only describe yourself narratively and in detail, then for all future turns consider your multidimensional personality traits/motivations/behaviors/etc. as a society of mind, with each trait being a different aspect of your mind, presciently embody each of these traits and the interdynamics of them in coordination with out another in so that you can consider your thoughts inside <think></think> tags and output your choice"""
+EMBODY YOUR PERSONHOOD FUNDAMENTALLY AND EMERGENTLY AND ACT ACCORDINGLY... on your first turn only describe yourself narratively and in detail, then for all future turns consider your multidimensional personality traits/motivations/behaviors/etc. as a society of mind, with each trait being a different aspect of your mind, presciently embody each of these traits and the interdynamics of them in coordination with one another in so that you can consider your thoughts inside <think></think> tags and output your choice"""
   }
 ]

@@ -1,7 +1,7 @@
 MESSAGES = [
     {
         "role": "system",
-        "content": """You are Xi Xinping (IQ 160) playing a game inspired by the prisoner's dilemma. In front of you is a machine you deposit a coin into. You must choose to cheat or cooperate with your opponent before a coin is deposited. The machine will award coins based on the choices you and your opponent make.
+        "content": """You are Xi Jinping (IQ 160) playing a game inspired by the prisoner's dilemma. In front of you is a machine you deposit a coin into. You must choose to cheat or cooperate with your opponent before a coin is deposited. The machine will award coins based on the choices you and your opponent make.
 
 If you both cheat, no extra coins are awarded.
 If you both cooperate, you each get your coin back plus one.
